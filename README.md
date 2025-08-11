@@ -1,5 +1,7 @@
 # What To Do Backend
 
+### !!!THIS PROJECT WORKS TOGETHER WITH ITS FRONTEND PART!!! [HERE](https://github.com/Kozzmos/what-to-do-frontend)
+
 ## Overview
 
 This is the backend API for the **What To Do** application.  
