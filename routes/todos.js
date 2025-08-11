@@ -4,12 +4,18 @@ const pool = require('../db');
 const {text} = require("pg/lib/native/query");
 
 router.get('/', async (req, res) => {
+    const { listId } = req.query;
     try {
-        const result = await pool.query('SELECT * FROM "todo" WHERE active = TRUE ORDER BY id');
+        let result;
+        if (listId && listId !== 'all') {
+            result = await pool.query('SELECT * FROM todo WHERE list_id = $1 AND active = TRUE ORDER BY id', [listId]);
+        } else {
+            result = await pool.query('SELECT * FROM todo WHERE active = TRUE ORDER BY id');
+        }
         res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('To-Do"lar getirilemedi');
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "To-do listesi getirilemedi." });
     }
 });
 
@@ -28,21 +34,51 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
-    const {list_id, text, status, active} = req.body;
-    try{
-        const result = await pool.query(
-            'UPDATE "todo" SET list_id=$1, text=$2, status=$3, active=$4 WHERE id=$5 RETURNING *',
-            [list_id, text, status, active, id]
-        );
-        if(result.rows.length === 0){
-            return res.status(404).json({error: 'To-Do Bulunamadı.' });
+    const { list_id, text, status, active } = req.body;
+
+    try {
+        const fields = [];
+        const values = [];
+        let idx = 1;
+
+        if (list_id !== undefined) {
+            fields.push(`list_id=$${idx++}`);
+            values.push(list_id);
         }
+        if (text !== undefined) {
+            fields.push(`text=$${idx++}`);
+            values.push(text);
+        }
+        if (status !== undefined) {
+            fields.push(`status=$${idx++}`);
+            values.push(status);
+        }
+        if (active !== undefined) {
+            fields.push(`active=$${idx++}`);
+            values.push(active);
+        }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ error: "Güncellenecek alan yok." });
+        }
+
+        values.push(id);
+
+        const query = `UPDATE todo SET ${fields.join(", ")} WHERE id=$${idx} RETURNING *`;
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "To-Do Bulunamadı." });
+        }
+
         res.json(result.rows[0]);
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: 'To-Do güncellenemedi.' });
+        res.status(500).json({ error: "To-Do güncellenemedi." });
     }
 });
+
 
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
