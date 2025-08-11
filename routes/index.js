@@ -1,9 +1,18 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = require('express').Router();
+const cors = require('cors');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+const listsRouter = require('./lists');
+const todosRouter = require('./todos');
+
+router.use(cors());
+router.use(express.json());
+
+router.use('/api/lists', listsRouter);
+router.use('/api/todos', todosRouter);
+
+router.get('/', (req, res) => {
+  res.send('Welcome to the API root.');
 });
 
 module.exports = router;
