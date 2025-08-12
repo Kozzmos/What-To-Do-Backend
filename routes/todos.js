@@ -4,14 +4,32 @@ const pool = require('../db');
 const {text} = require("pg/lib/native/query");
 
 router.get('/', async (req, res) => {
-    const { listId } = req.query;
+    const { listId, user_id } = req.query;
+
     try {
         let result;
+
         if (listId && listId !== 'all') {
-            result = await pool.query('SELECT * FROM todo WHERE list_id = $1 AND active = TRUE ORDER BY id', [listId]);
+            result = await pool.query(`
+                SELECT t.*
+                FROM todo t
+                         JOIN list l ON t.list_id = l.id
+                WHERE t.list_id = $1
+                  AND l.user_id = $2
+                  AND t.active = TRUE
+                ORDER BY t.due_date
+            `, [listId, user_id]);
         } else {
-            result = await pool.query('SELECT * FROM todo WHERE active = TRUE ORDER BY id');
+            result = await pool.query(`
+                SELECT t.*
+                FROM todo t
+                         JOIN list l ON t.list_id = l.id
+                WHERE l.user_id = $1
+                  AND t.active = TRUE
+                ORDER BY t.due_date
+            `, [user_id]);
         }
+
         res.json(result.rows);
     } catch (error) {
         console.error(error);
@@ -19,11 +37,12 @@ router.get('/', async (req, res) => {
     }
 });
 
+
 router.post('/', async (req, res) => {
     try {
-        const {list_id, text, status, active} = req.body;
-        const result = await pool.query('INSERT INTO "todo" (list_id, text, status, active) VALUES ($1, $2, $3, $4) RETURNING *',
-            [list_id, text, status, active]
+        const {list_id, text, status, active, due_date} = req.body;
+        const result = await pool.query('INSERT INTO "todo" (list_id, text, status, active, due_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [list_id, text, status, active, due_date]
         );
         res.status(201).send(result.rows[0]);
     } catch (error) {
@@ -34,7 +53,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
-    const { list_id, text, status, active } = req.body;
+    const { list_id, text, status, active, due_date } = req.body;
 
     try {
         const fields = [];
@@ -56,6 +75,10 @@ router.put('/:id', async (req, res) => {
         if (active !== undefined) {
             fields.push(`active=$${idx++}`);
             values.push(active);
+        }
+        if (due_date !== undefined) {
+            fields.push(`due_date=$${idx++}`);
+            values.push(due_date);
         }
 
         if (fields.length === 0) {
