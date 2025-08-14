@@ -40,9 +40,9 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const {list_id, text, status, active, due_date} = req.body;
-        const result = await pool.query('INSERT INTO "todo" (list_id, text, status, active, due_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [list_id, text, status, active, due_date]
+        const {list_id, text, status, active, due_date, tags} = req.body;
+        const result = await pool.query('INSERT INTO "todo" (list_id, text, status, active, due_date, tags) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [list_id, text, status, active, due_date, tags]
         );
         res.status(201).send(result.rows[0]);
     } catch (error) {
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
-    const { list_id, text, status, active, due_date } = req.body;
+    const { list_id, text, status, active, due_date, tags } = req.body;
 
     try {
         const fields = [];
@@ -79,6 +79,10 @@ router.put('/:id', async (req, res) => {
         if (due_date !== undefined) {
             fields.push(`due_date=$${idx++}`);
             values.push(due_date);
+        }
+        if (tags !== undefined) {
+            fields.push(`tags=$${idx++}`);
+            values.push(tags);
         }
 
         if (fields.length === 0) {
