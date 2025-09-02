@@ -50,12 +50,18 @@ npm install
 Run the server:
 
 ```bash
-npm start
+npm run dev
+```
+
+Run the test cases:
+
+```bash
+npm run test
 ```
 
 The server will be accessible at http://localhost:3001/api.
 
-##API Endpoints
+## API Endpoints
 
 -Lists
 
