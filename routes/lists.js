@@ -3,8 +3,10 @@ const router = express.Router();
 const pool = require('../db');
 
 router.get('/', async (req, res) => {
+    const { user_id } = req.query;
+    let result;
     try {
-        const result = await pool.query('SELECT * FROM "list" ORDER BY id');
+        result = await pool.query('SELECT * FROM "list" WHERE user_id = $1 ORDER BY id', [user_id]);
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -13,11 +15,11 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const {name, tags, color} = req.body;
+    const {name, tags, color, user_id} = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO "list" (name, tags, color) VALUES ($1, $2, $3) RETURNING *',
-            [name, tags, color]
+            'INSERT INTO "list" (name, tags, color, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, tags, color, user_id]
         );
         res.status(201).send(result.rows[0]);
     } catch (error) {
