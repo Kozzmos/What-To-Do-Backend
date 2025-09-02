@@ -1,0 +1,30 @@
+### GET todos
+GET http://localhost:3001/api/lists
+Accept: application/json
+
+<> 2025-09-02T161857.200.json
+
+### POST new todo
+POST http://localhost:3001/api/todos
+Content-Type: application/json
+
+{
+  "title": "Yeni List"
+}
+
+<> 2025-09-02T161858.400.json
+
+### PUT update todo
+PUT http://localhost:3001/api/todos/1
+Content-Type: application/json
+
+{
+  "title": "Güncellenmiş List"
+}
+
+<> 2025-09-02T161858-1.400.json
+
+### DELETE todo
+DELETE http://localhost:3001/api/todos/1
+
+<> 2025-09-02T161858.404.json
