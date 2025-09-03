@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const validateTodoInput = require ('./middleware/validateTodoInput');
 
 // GET todos
 router.get('/', async (req, res) => {
@@ -39,7 +40,7 @@ router.get('/', async (req, res) => {
 
 
 // CREATE todo
-router.post('/', async (req, res) => {
+router.post('/', validateTodoInput, async (req, res) => {
     try {
         const { list_id, text, status, active, due_date, tags} = req.body;
 
@@ -109,8 +110,7 @@ router.post('/', async (req, res) => {
 
 
 // UPDATE todo
-// UPDATE todo
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateTodoInput, async (req, res) => {
     const id = req.params.id;
     let { list_id, text, status, active, due_date, tags, completed_at } = req.body;
 
